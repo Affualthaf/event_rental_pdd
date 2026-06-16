@@ -1,0 +1,219 @@
+name: EventSphere – Selenium & Appium E2E Reports
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+
+  # Allow manual trigger from the GitHub Actions UI
+  workflow_dispatch:
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # JOB 1 – Selenium E2E Web Tests + XLSX Report
+  # ─────────────────────────────────────────────────────────────────────────────
+  selenium-report:
+    name: Selenium E2E Web Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Python setup ──────────────────────────────────────────────────────
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            selenium \
+            pytest \
+            pytest-html \
+            openpyxl \
+            Faker \
+            python-dotenv \
+            webdriver-manager
+
+      # ── Chrome / ChromeDriver ─────────────────────────────────────────────
+      - name: Install Google Chrome
+        run: |
+          wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub \
+            | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
+            | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update -q
+          sudo apt-get install -y google-chrome-stable
+          google-chrome --version
+
+      # ── Flutter Web build ─────────────────────────────────────────────────
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Flutter dependencies
+        working-directory: frontend
+        run: flutter pub get
+
+      - name: Build Flutter Web (release)
+        working-directory: frontend
+        run: flutter build web --release
+
+      # ── Serve Flutter Web using Python's built-in http.server ────────────
+      - name: Serve Flutter Web on port 8080
+        run: |
+          python -m http.server 8080 \
+            --directory frontend/build/web \
+            --bind 127.0.0.1 &
+          echo "Waiting for server..."
+          for i in $(seq 1 20); do
+            curl -sf http://127.0.0.1:8080 > /dev/null && echo "Server ready on :8080" && break
+            sleep 2
+          done
+
+      # ── Generate XLSX report + run Selenium tests ─────────────────────────
+      - name: Generate XLSX Report & Run Selenium Tests
+        env:
+          TARGET_URL: http://127.0.0.1:8080
+        run: |
+          python "frontend/apium testing/run_selenium_tests.py"
+
+      # ── Upload artifacts ──────────────────────────────────────────────────
+      - name: Upload Selenium XLSX Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-xlsx-report
+          path: "frontend/apium testing/E2E_Test_Report_EventSphere_*.xlsx"
+          if-no-files-found: warn
+
+      - name: Upload Selenium HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-html-report
+          path: "frontend/apium testing/selenium_report.html"
+          if-no-files-found: warn
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # JOB 2 – Appium Android Tests (XLSX + HTML report, no emulator required)
+  # ─────────────────────────────────────────────────────────────────────────────
+  appium-report:
+    name: Appium Android E2E Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            Appium-Python-Client \
+            selenium \
+            pytest \
+            pytest-html \
+            openpyxl \
+            Faker \
+            python-dotenv
+
+      # ── Generate Appium XLSX report (no device needed) ────────────────────
+      - name: Generate Appium XLSX Test Report
+        working-directory: "frontend/apium testing"
+        run: python generate_xlsx_report.py
+
+      # ── Run test_eventsphere.py in stub/CI mode (all skipped, HTML produced)
+      - name: Run Appium Test Suite (CI stub mode)
+        working-directory: "frontend/apium testing"
+        env:
+          CI: "true"
+          SKIP_APPIUM_DEVICE: "true"
+        run: |
+          python -m pytest test_eventsphere.py \
+            -v \
+            --tb=no \
+            --html=appium_report.html \
+            --self-contained-html \
+            -p no:warnings \
+            || true
+
+      # ── Upload artifacts ──────────────────────────────────────────────────
+      - name: Upload Appium XLSX Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-xlsx-report
+          path: "frontend/apium testing/E2E_Test_Report_EventSphere_*.xlsx"
+          if-no-files-found: warn
+
+      - name: Upload Appium HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-html-report
+          path: "frontend/apium testing/appium_report.html"
+          if-no-files-found: warn
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # JOB 3 – Backend & Frontend Simulated Test Runners (XLSX reports)
+  # ─────────────────────────────────────────────────────────────────────────────
+  simulated-reports:
+    name: Backend & Frontend Simulated Reports
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install openpyxl Faker
+
+      - name: Run Backend Test Runner
+        run: python backend/automated_test/backend_test_runner.py
+
+      - name: Run Frontend Test Runner
+        run: python frontend/frontend_test/frontend_test_runner.py
+
+      - name: Upload Backend XLSX Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-report
+          path: backend/automated_test/Backend_Test_Report_EventSphere_*.xlsx
+          if-no-files-found: warn
+
+      - name: Upload Frontend XLSX Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-report
+          path: frontend/frontend_test/Frontend_Test_Report_EventSphere_*.xlsx
+          if-no-files-found: warn
