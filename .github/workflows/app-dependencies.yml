@@ -1,0 +1,91 @@
+name: EventSphere Automated Tests
+
+on:
+  push:
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Setup Flutter and Build Web ──
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Flutter dependencies
+        working-directory: frontend
+        run: flutter pub get
+
+      - name: Build Flutter Web
+        working-directory: frontend
+        run: flutter build web --release
+
+      - name: Start Web Server in background
+        run: |
+          npx http-server frontend/build/web -p 8080 &
+          sleep 5
+
+      # ── Setup Python ──
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install openpyxl selenium pytest pytest-html Faker python-dotenv
+
+      # ── Run Backend Tests ──
+      - name: Run Backend Tests
+        run: |
+          python backend/automated_test/backend_test_runner.py
+
+      # ── Run Frontend Tests ──
+      - name: Run Frontend Tests
+        run: |
+          python frontend/frontend_test/frontend_test_runner.py
+
+      # ── Run Selenium E2E Web Tests ──
+      - name: Run Selenium Web Tests
+        env:
+          TARGET_URL: http://localhost:8080
+        run: |
+          pytest "frontend/apium testing/selenium_e2e_tests.py" --html="frontend/apium testing/report.html" --self-contained-html
+
+      # ── Upload Test Reports ──
+      - name: Upload Backend Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-report
+          path: backend/automated_test/Backend_Test_Report_EventSphere_*.xlsx
+
+      - name: Upload Frontend Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-report
+          path: frontend/frontend_test/Frontend_Test_Report_EventSphere_*.xlsx
+
+      - name: Upload Selenium E2E Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-e2e-reports
+          path: |
+            frontend/apium testing/report.html
+            frontend/apium testing/E2E_Test_Report_EventSphere_*.xlsx
