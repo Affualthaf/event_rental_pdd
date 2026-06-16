@@ -1,0 +1,29 @@
+{
+  "firestore": {
+    "rules": "backend/firestore.rules",
+    "indexes": "backend/firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "eventsphere-9edf8",
+          "appId": "1:602471582725:android:39fc18e939eed6235a206c",
+          "fileOutput": "frontend/android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "frontend/lib/firebase_options.dart": {
+          "projectId": "eventsphere-9edf8",
+          "configurations": {
+            "android": "1:602471582725:android:39fc18e939eed6235a206c",
+            "ios": "1:602471582725:ios:7f0427774f7c6ca05a206c",
+            "macos": "1:602471582725:ios:7f0427774f7c6ca05a206c",
+            "web": "1:602471582725:web:20c88488e82f8d0c5a206c",
+            "windows": "1:602471582725:web:bfe196177d3d63f95a206c"
+          }
+        }
+      }
+    }
+  }
+}

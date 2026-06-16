@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.venv
+venv/
+ENV/
+env/
+
+# Logs and databases
+*.log
+*.sqlite
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Test Reports
+*.xlsx
+frontend/frontend_test/Frontend_Test_Report_*.xlsx
+backend/automated_test/Backend_Test_Report_*.xlsx
+frontend/apium testing/E2E_Test_Report_*.xlsx

@@ -1,0 +1,173 @@
+{
+  "project": "EventSphere",
+  "version": "1.0.0+1",
+  "base_url": "https://firestore.googleapis.com",
+  "test_users": {
+    "customer": { "email": "customer@test.com", "password": "Test@1234", "role": "Customer" },
+    "vendor":   { "email": "vendor@test.com",   "password": "Test@1234", "role": "Vendor"   },
+    "admin":    { "email": "admin@eventsphere.com", "password": "Admin@1234", "role": "Admin" }
+  },
+  "collections": ["users", "orders", "equipment", "chats"],
+  "test_suites": [
+    {
+      "suite": "Authentication",
+      "tests": [
+        { "id": "BT-001", "name": "Register new customer", "method": "POST", "endpoint": "signUp", "payload": { "email": "newcustomer@test.com", "password": "Test@1234", "role": "Customer" }, "expected_status": 200 },
+        { "id": "BT-002", "name": "Register new vendor",   "method": "POST", "endpoint": "signUp", "payload": { "email": "newvendor@test.com", "password": "Test@1234", "role": "Vendor", "shopName": "TestShop", "pincode": "500001" }, "expected_status": 200 },
+        { "id": "BT-003", "name": "Login with valid customer credentials", "method": "POST", "endpoint": "signInWithPassword", "payload": { "email": "customer@test.com", "password": "Test@1234" }, "expected_status": 200 },
+        { "id": "BT-004", "name": "Login with valid vendor credentials",   "method": "POST", "endpoint": "signInWithPassword", "payload": { "email": "vendor@test.com", "password": "Test@1234" }, "expected_status": 200 },
+        { "id": "BT-005", "name": "Login with wrong password", "method": "POST", "endpoint": "signInWithPassword", "payload": { "email": "customer@test.com", "password": "WrongPass" }, "expected_status": 400 },
+        { "id": "BT-006", "name": "Login with unregistered email", "method": "POST", "endpoint": "signInWithPassword", "payload": { "email": "ghost@test.com", "password": "Test@1234" }, "expected_status": 400 },
+        { "id": "BT-007", "name": "Password reset for registered email", "method": "POST", "endpoint": "sendOobCode", "payload": { "email": "customer@test.com", "requestType": "PASSWORD_RESET" }, "expected_status": 200 },
+        { "id": "BT-008", "name": "Password reset for unregistered email", "method": "POST", "endpoint": "sendOobCode", "payload": { "email": "ghost@test.com", "requestType": "PASSWORD_RESET" }, "expected_status": 400 },
+        { "id": "BT-009", "name": "Duplicate email registration", "method": "POST", "endpoint": "signUp", "payload": { "email": "customer@test.com", "password": "Test@1234", "role": "Customer" }, "expected_status": 400 }
+      ]
+    },
+    {
+      "suite": "User Profile (Firestore)",
+      "tests": [
+        { "id": "BT-010", "name": "Fetch own user profile", "method": "GET", "collection": "users", "doc": "{uid}", "auth": "customer", "expected_fields": ["name","email","role","location","phone","createdAt"] },
+        { "id": "BT-011", "name": "Update user profile name", "method": "PATCH", "collection": "users", "doc": "{uid}", "auth": "customer", "payload": { "name": "Updated Name" }, "expected_status": 200 },
+        { "id": "BT-012", "name": "Update user profile phone", "method": "PATCH", "collection": "users", "doc": "{uid}", "auth": "customer", "payload": { "phone": "9876543210" }, "expected_status": 200 },
+        { "id": "BT-013", "name": "Customer cannot write another user doc", "method": "PATCH", "collection": "users", "doc": "{other_uid}", "auth": "customer", "payload": { "name": "Hacked" }, "expected_status": 403 },
+        { "id": "BT-014", "name": "Vendor profile contains shopName and pincode", "method": "GET", "collection": "users", "doc": "{vendor_uid}", "auth": "vendor", "expected_fields": ["shopName","pincode"] },
+        { "id": "BT-015", "name": "Admin can read any user profile", "method": "GET", "collection": "users", "doc": "{uid}", "auth": "admin", "expected_status": 200 },
+        { "id": "BT-016", "name": "Unauthenticated read is denied", "method": "GET", "collection": "users", "doc": "{uid}", "auth": "none", "expected_status": 403 }
+      ]
+    },
+    {
+      "suite": "Equipment (Firestore)",
+      "tests": [
+        { "id": "BT-017", "name": "Vendor adds new equipment item", "method": "POST", "collection": "equipment", "auth": "vendor", "payload": { "name": "PA System", "category": "Sound", "pricePerDay": 1500, "description": "Professional PA System", "emoji": "🔊", "vendorId": "{vendor_uid}" }, "expected_status": 200 },
+        { "id": "BT-018", "name": "Customer cannot add equipment", "method": "POST", "collection": "equipment", "auth": "customer", "payload": { "name": "Fake Item", "vendorId": "{uid}", "pricePerDay": 100 }, "expected_status": 403 },
+        { "id": "BT-019", "name": "Vendor cannot add equipment for another vendor", "method": "POST", "collection": "equipment", "auth": "vendor", "payload": { "name": "Hijacked Item", "vendorId": "other_vendor_123", "pricePerDay": 100 }, "expected_status": 403 },
+        { "id": "BT-020", "name": "Authenticated user can list all equipment", "method": "GET", "collection": "equipment", "auth": "customer", "expected_status": 200 },
+        { "id": "BT-021", "name": "Vendor can update own equipment item", "method": "PATCH", "collection": "equipment", "doc": "{item_id}", "auth": "vendor", "payload": { "pricePerDay": 2000 }, "expected_status": 200 },
+        { "id": "BT-022", "name": "Vendor cannot update another vendor's equipment", "method": "PATCH", "collection": "equipment", "doc": "{other_item_id}", "auth": "vendor", "payload": { "pricePerDay": 999 }, "expected_status": 403 },
+        { "id": "BT-023", "name": "Admin can update any equipment item", "method": "PATCH", "collection": "equipment", "doc": "{item_id}", "auth": "admin", "payload": { "pricePerDay": 1800 }, "expected_status": 200 },
+        { "id": "BT-024", "name": "Get equipment by vendor ID filter", "method": "GET", "collection": "equipment", "filter": { "vendorId": "{vendor_uid}" }, "auth": "customer", "expected_status": 200 },
+        { "id": "BT-025", "name": "Vendor deletes own equipment", "method": "DELETE", "collection": "equipment", "doc": "{item_id}", "auth": "vendor", "expected_status": 200 },
+        { "id": "BT-026", "name": "Customer cannot delete equipment", "method": "DELETE", "collection": "equipment", "doc": "{item_id}", "auth": "customer", "expected_status": 403 }
+      ]
+    },
+    {
+      "suite": "Orders (Firestore)",
+      "tests": [
+        { "id": "BT-027", "name": "Customer places a new order", "method": "POST", "collection": "orders", "auth": "customer", "payload": { "customerName": "Test Customer", "phone": "9876543210", "address": "123 Main St", "city": "Hyderabad", "zip": "500001", "eventName": "Birthday Party", "specialInstructions": "Handle with care", "items": [{ "name": "PA System", "quantity": 1, "price": 1500, "days": 2 }], "total": 3300, "status": "Processing", "vendorId": "{vendor_uid}", "trackingStep": 0, "trackingNote": "" }, "expected_status": 200 },
+        { "id": "BT-028", "name": "Customer cannot place order with wrong customerId", "method": "POST", "collection": "orders", "auth": "customer", "payload": { "customerId": "wrong_uid_123", "customerName": "Hack", "total": 100 }, "expected_status": 403 },
+        { "id": "BT-029", "name": "Customer reads own orders", "method": "GET", "collection": "orders", "filter": { "customerId": "{uid}" }, "auth": "customer", "expected_status": 200 },
+        { "id": "BT-030", "name": "Customer cannot read another customer's order", "method": "GET", "collection": "orders", "doc": "{other_order_id}", "auth": "customer", "expected_status": 403 },
+        { "id": "BT-031", "name": "Vendor reads orders assigned to them", "method": "GET", "collection": "orders", "filter": { "vendorId": "{vendor_uid}" }, "auth": "vendor", "expected_status": 200 },
+        { "id": "BT-032", "name": "Vendor accepts order (status → Confirmed)", "method": "PATCH", "collection": "orders", "doc": "{order_id}", "auth": "vendor", "payload": { "status": "Confirmed", "trackingStep": 1 }, "expected_status": 200 },
+        { "id": "BT-033", "name": "Vendor rejects order (status → Rejected)", "method": "PATCH", "collection": "orders", "doc": "{order_id}", "auth": "vendor", "payload": { "status": "Rejected" }, "expected_status": 200 },
+        { "id": "BT-034", "name": "Vendor updates tracking to Out for Delivery", "method": "PATCH", "collection": "orders", "doc": "{order_id}", "auth": "vendor", "payload": { "trackingStep": 3, "status": "Out for Delivery", "trackingNote": "On the way" }, "expected_status": 200 },
+        { "id": "BT-035", "name": "Vendor updates tracking to Delivered", "method": "PATCH", "collection": "orders", "doc": "{order_id}", "auth": "vendor", "payload": { "trackingStep": 4, "status": "Delivered", "trackingNote": "Delivered successfully" }, "expected_status": 200 },
+        { "id": "BT-036", "name": "Customer cannot update order status", "method": "PATCH", "collection": "orders", "doc": "{other_order_id}", "auth": "customer", "payload": { "status": "Confirmed" }, "expected_status": 403 },
+        { "id": "BT-037", "name": "Admin can read all orders", "method": "GET", "collection": "orders", "auth": "admin", "expected_status": 200 },
+        { "id": "BT-038", "name": "Admin can delete an order", "method": "DELETE", "collection": "orders", "doc": "{order_id}", "auth": "admin", "expected_status": 200 },
+        { "id": "BT-039", "name": "Unauthenticated user cannot create order", "method": "POST", "collection": "orders", "auth": "none", "payload": { "customerName": "Ghost" }, "expected_status": 403 }
+      ]
+    },
+    {
+      "suite": "Chat (Firestore)",
+      "tests": [
+        { "id": "BT-040", "name": "Customer initiates chat with vendor", "method": "POST", "collection": "chats", "auth": "customer", "payload": { "participants": ["{uid}", "{vendor_uid}"], "lastMessage": "Hi!", "lastMessageTime": "2026-06-16T04:00:00Z" }, "expected_status": 200 },
+        { "id": "BT-041", "name": "Participant can read their chat", "method": "GET", "collection": "chats", "doc": "{chat_id}", "auth": "customer", "expected_status": 200 },
+        { "id": "BT-042", "name": "Non-participant cannot read chat", "method": "GET", "collection": "chats", "doc": "{chat_id}", "auth": "admin", "participant": false, "expected_status": 403 },
+        { "id": "BT-043", "name": "Participant sends a message", "method": "POST", "collection": "chats/{chat_id}/messages", "auth": "customer", "payload": { "senderId": "{uid}", "text": "Hello vendor!", "timestamp": "2026-06-16T04:01:00Z" }, "expected_status": 200 },
+        { "id": "BT-044", "name": "Vendor reads messages in their chat", "method": "GET", "collection": "chats/{chat_id}/messages", "auth": "vendor", "expected_status": 200 },
+        { "id": "BT-045", "name": "Non-participant cannot send message", "method": "POST", "collection": "chats/{chat_id}/messages", "auth": "admin", "participant": false, "payload": { "senderId": "admin", "text": "Intrusion" }, "expected_status": 403 },
+        { "id": "BT-046", "name": "Chat ID is deterministic (sorted UIDs)", "method": "LOGIC", "description": "getChatId(uid1,uid2) == getChatId(uid2,uid1) — sort guarantees same key", "expected": "symmetric_chat_id" }
+      ]
+    },
+    {
+      "suite": "Data Model Validation",
+      "tests": [
+        { "id": "BT-047", "name": "OrderModel.fromMap parses all fields correctly", "method": "UNIT", "model": "OrderModel", "input": { "customerName": "Alice", "phone": "9000000001", "address": "Apt 1", "city": "Mumbai", "zip": "400001", "eventName": "Wedding", "specialInstructions": "", "items": [{ "name": "Lights", "quantity": 2, "price": 500, "days": 3 }], "total": 3300, "status": "Processing", "createdAt": { "_seconds": 1700000000, "_nanoseconds": 0 }, "vendorId": "v1", "trackingStep": 0, "trackingNote": "" }, "expected_fields": ["id","customerName","phone","total","status","trackingStep"] },
+        { "id": "BT-048", "name": "UserModel.fromMap defaults role to Customer", "method": "UNIT", "model": "UserModel", "input": { "name": "Bob", "email": "bob@test.com", "phone": "", "location": "Delhi" }, "expected": { "role": "Customer" } },
+        { "id": "BT-049", "name": "OrderItem price calculation: qty × price × days", "method": "UNIT", "model": "CartService", "input": { "price": 500, "qty": 2, "days": 3 }, "expected": { "subtotal": 3000, "tax": 300, "total": 3300 } },
+        { "id": "BT-050", "name": "CartService addItem increments qty on duplicate", "method": "UNIT", "model": "CartService", "input": { "action": "add_twice", "id": "item1", "price": 100, "qty": 1 }, "expected": { "cart_length": 1, "qty": 2 } },
+        { "id": "BT-051", "name": "CartService updateQty enforces minimum qty=1", "method": "UNIT", "model": "CartService", "input": { "action": "decrement_below_one", "id": "item1", "current_qty": 1, "delta": -1 }, "expected": { "qty": 1 } },
+        { "id": "BT-052", "name": "CartService clear empties all items", "method": "UNIT", "model": "CartService", "input": { "action": "clear", "items_before": 3 }, "expected": { "cart_length": 0 } },
+        { "id": "BT-053", "name": "OrderModel.toMap includes vendorId and trackingStep", "method": "UNIT", "model": "OrderModel", "expected_fields": ["vendorId", "trackingStep", "trackingNote"] },
+        { "id": "BT-054", "name": "UserModel.toMap includes shopName and pincode for vendor", "method": "UNIT", "model": "UserModel", "input": { "role": "Vendor", "shopName": "ShopA", "pincode": "500001" }, "expected_fields": ["shopName","pincode"] }
+      ]
+    },
+    {
+      "suite": "Firestore Security Rules",
+      "tests": [
+        { "id": "BT-055", "name": "Unauthenticated request denied on /users", "method": "RULE", "rule": "users/{userId}", "operation": "read", "auth": "none", "expected": "DENY" },
+        { "id": "BT-056", "name": "Authenticated user can read any /users doc", "method": "RULE", "rule": "users/{userId}", "operation": "read", "auth": "customer", "expected": "ALLOW" },
+        { "id": "BT-057", "name": "User can only create their own /users doc", "method": "RULE", "rule": "users/{userId}", "operation": "create", "auth": "customer", "uid_match": true, "expected": "ALLOW" },
+        { "id": "BT-058", "name": "User cannot create another user's doc", "method": "RULE", "rule": "users/{userId}", "operation": "create", "auth": "customer", "uid_match": false, "expected": "DENY" },
+        { "id": "BT-059", "name": "Admin can delete any user document", "method": "RULE", "rule": "users/{userId}", "operation": "delete", "auth": "admin", "expected": "ALLOW" },
+        { "id": "BT-060", "name": "Customer cannot delete a user document", "method": "RULE", "rule": "users/{userId}", "operation": "delete", "auth": "customer", "expected": "DENY" },
+        { "id": "BT-061", "name": "Vendor can create equipment with own vendorId", "method": "RULE", "rule": "equipment/{itemId}", "operation": "create", "auth": "vendor", "vendorId_match": true, "expected": "ALLOW" },
+        { "id": "BT-062", "name": "Customer cannot create equipment", "method": "RULE", "rule": "equipment/{itemId}", "operation": "create", "auth": "customer", "expected": "DENY" },
+        { "id": "BT-063", "name": "Customer can place order with matching customerId", "method": "RULE", "rule": "orders/{orderId}", "operation": "create", "auth": "customer", "customerId_match": true, "expected": "ALLOW" },
+        { "id": "BT-064", "name": "Customer cannot read another customer's order", "method": "RULE", "rule": "orders/{orderId}", "operation": "read", "auth": "customer", "customerId_match": false, "vendorId_match": false, "expected": "DENY" },
+        { "id": "BT-065", "name": "Vendor can update their order", "method": "RULE", "rule": "orders/{orderId}", "operation": "update", "auth": "vendor", "vendorId_match": true, "expected": "ALLOW" },
+        { "id": "BT-066", "name": "Admin can delete orders", "method": "RULE", "rule": "orders/{orderId}", "operation": "delete", "auth": "admin", "expected": "ALLOW" },
+        { "id": "BT-067", "name": "Chat participant can read chat document", "method": "RULE", "rule": "chats/{chatId}", "operation": "read", "auth": "customer", "participant": true, "expected": "ALLOW" },
+        { "id": "BT-068", "name": "Non-participant cannot read chat document", "method": "RULE", "rule": "chats/{chatId}", "operation": "read", "auth": "admin", "participant": false, "expected": "DENY" },
+        { "id": "BT-069", "name": "Participant can send message in sub-collection", "method": "RULE", "rule": "chats/{chatId}/messages/{messageId}", "operation": "write", "auth": "customer", "participant": true, "expected": "ALLOW" },
+        { "id": "BT-070", "name": "Catch-all rule denies unknown collections", "method": "RULE", "rule": "{document=**}", "operation": "read", "auth": "customer", "expected": "DENY" }
+      ]
+    },
+    {
+      "suite": "Business Logic & Edge Cases",
+      "tests": [
+        { "id": "BT-071", "name": "trackingStep clamps between 0 and 4", "method": "LOGIC", "description": "step.clamp(0,4) tested with step=-1, step=5", "inputs": [-1, 5], "expected": [0, 4] },
+        { "id": "BT-072", "name": "getOrdersForVendor includes empty vendorId orders", "method": "LOGIC", "description": "Orders with vendorId='' are included in vendor's list", "expected": "included" },
+        { "id": "BT-073", "name": "getOrdersForVendor includes mock_ prefix orders", "method": "LOGIC", "description": "Orders with vendorId starting 'mock_' are included", "expected": "included" },
+        { "id": "BT-074", "name": "Orders sorted by createdAt descending", "method": "LOGIC", "description": "Newest orders appear first in getOrders() stream", "expected": "descending_createdAt" },
+        { "id": "BT-075", "name": "getCustomerOrders excludes orders without customerId", "method": "LOGIC", "description": "Orders missing customerId field are excluded from stream", "expected": "excluded" },
+        { "id": "BT-076", "name": "getVendorsByCity empty city returns all vendors", "method": "LOGIC", "description": "city='' returns all vendors regardless of location", "expected": "all_vendors" },
+        { "id": "BT-077", "name": "getVendorsByCity filters case-insensitively", "method": "LOGIC", "description": "query 'HYDERABAD' matches vendor.location='Hyderabad'", "expected": "match" },
+        { "id": "BT-078", "name": "sendMessage creates chat doc on first message", "method": "LOGIC", "description": "When no chat doc exists, transaction creates it with participants array", "expected": "chat_doc_created" },
+        { "id": "BT-079", "name": "sendMessage updates lastMessage on subsequent send", "method": "LOGIC", "description": "Second message updates lastMessage and lastMessageTime in chat doc", "expected": "fields_updated" },
+        { "id": "BT-080", "name": "CartService subtotal = sum(price × qty × days)", "method": "LOGIC", "input": [{ "price": 500, "qty": 2, "days": 3 }, { "price": 200, "qty": 1, "days": 1 }], "expected": { "subtotal": 3200, "tax": 320, "total": 3520 } },
+        { "id": "BT-081", "name": "Order total includes 10% tax", "method": "LOGIC", "description": "total = subtotal + subtotal*0.1", "expected": "tax_10_percent" },
+        { "id": "BT-082", "name": "placeOrder stamps customerId from FirebaseAuth.currentUser.uid", "method": "LOGIC", "description": "customerId field in written doc equals logged-in user's UID", "expected": "customerId_equals_uid" },
+        { "id": "BT-083", "name": "acceptOrder sets trackingStep=1 and status=Confirmed", "method": "LOGIC", "expected": { "status": "Confirmed", "trackingStep": 1 } },
+        { "id": "BT-084", "name": "rejectOrder sets status=Rejected only", "method": "LOGIC", "expected": { "status": "Rejected" } },
+        { "id": "BT-085", "name": "updateTracking maps step to correct status label", "method": "LOGIC", "inputs": [0,1,2,3,4], "expected": ["Processing","Confirmed","Prepared","Out for Delivery","Delivered"] }
+      ]
+    },
+    {
+      "suite": "Router & Auth Guards",
+      "tests": [
+        { "id": "BT-086", "name": "Unauthenticated access to /home redirects to /login", "method": "ROUTE", "path": "/home", "auth": "none", "expected_redirect": "/login" },
+        { "id": "BT-087", "name": "Authenticated user at /login redirects to /home", "method": "ROUTE", "path": "/login", "auth": "customer", "expected_redirect": "/home" },
+        { "id": "BT-088", "name": "Authenticated user at /signup redirects to /home", "method": "ROUTE", "path": "/signup", "auth": "customer", "expected_redirect": "/home" },
+        { "id": "BT-089", "name": "/splash is public (no auth required)", "method": "ROUTE", "path": "/splash", "auth": "none", "expected_redirect": null },
+        { "id": "BT-090", "name": "/forgot-password is public", "method": "ROUTE", "path": "/forgot-password", "auth": "none", "expected_redirect": null },
+        { "id": "BT-091", "name": "/cart requires authentication", "method": "ROUTE", "path": "/cart", "auth": "none", "expected_redirect": "/login" },
+        { "id": "BT-092", "name": "/admin-dashboard requires authentication", "method": "ROUTE", "path": "/admin-dashboard", "auth": "none", "expected_redirect": "/login" },
+        { "id": "BT-093", "name": "/order-tracking requires authentication", "method": "ROUTE", "path": "/order-tracking", "auth": "none", "expected_redirect": "/login" }
+      ]
+    },
+    {
+      "suite": "Stream & Real-Time Behaviour",
+      "tests": [
+        { "id": "BT-094", "name": "getOrders() emits updated list on new order insert", "method": "STREAM", "collection": "orders", "action": "insert", "expected": "stream_emits_new_item" },
+        { "id": "BT-095", "name": "getOrderByIdStream emits null for deleted order", "method": "STREAM", "collection": "orders", "action": "delete", "expected": "emits_null" },
+        { "id": "BT-096", "name": "getEquipment() stream reflects new equipment", "method": "STREAM", "collection": "equipment", "action": "insert", "expected": "stream_updated" },
+        { "id": "BT-097", "name": "getUserChats() stream updates on new chat creation", "method": "STREAM", "collection": "chats", "action": "insert", "expected": "stream_updated" },
+        { "id": "BT-098", "name": "getMessages() stream ordered by timestamp ascending", "method": "STREAM", "collection": "chats/{chat_id}/messages", "expected": "ascending_timestamp" },
+        { "id": "BT-099", "name": "userProfileStream() emits null when user doc absent", "method": "STREAM", "collection": "users", "action": "doc_not_exists", "expected": "emits_null" }
+      ]
+    },
+    {
+      "suite": "Negative & Boundary Tests",
+      "tests": [
+        { "id": "BT-100", "name": "Register with empty email returns error", "method": "POST", "endpoint": "signUp", "payload": { "email": "", "password": "Test@1234" }, "expected_status": 400 },
+        { "id": "BT-101", "name": "Register with short password returns error", "method": "POST", "endpoint": "signUp", "payload": { "email": "x@test.com", "password": "123" }, "expected_status": 400 },
+        { "id": "BT-102", "name": "Order with empty items array is invalid", "method": "POST", "collection": "orders", "auth": "customer", "payload": { "items": [], "total": 0 }, "expected_status": 400 },
+        { "id": "BT-103", "name": "Equipment with negative price is rejected", "method": "POST", "collection": "equipment", "auth": "vendor", "payload": { "name": "Item", "pricePerDay": -500, "vendorId": "{vendor_uid}" }, "expected_status": 400 },
+        { "id": "BT-104", "name": "getEquipmentById returns null for non-existent ID", "method": "GET", "collection": "equipment", "doc": "nonexistent_id_xyz", "auth": "customer", "expected": null },
+        { "id": "BT-105", "name": "getUserById returns null for non-existent UID", "method": "GET", "collection": "users", "doc": "nonexistent_uid_xyz", "auth": "admin", "expected": null }
+      ]
+    }
+  ]
+}

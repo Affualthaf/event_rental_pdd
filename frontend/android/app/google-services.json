@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "602471582725",
+    "firebase_url": "https://eventsphere-9edf8-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "eventsphere-9edf8",
+    "storage_bucket": "eventsphere-9edf8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:602471582725:android:39fc18e939eed6235a206c",
+        "android_client_info": {
+          "package_name": "com.example.event"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCak5fxL3zKEUZF70mKuVFcSGn07sOWwAY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

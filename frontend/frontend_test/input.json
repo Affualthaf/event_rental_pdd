@@ -1,0 +1,142 @@
+{
+  "project": "EventSphere",
+  "version": "1.0.0+1",
+  "base_url": "http://localhost:8080",
+  "test_suites": [
+    {
+      "suite": "Onboarding",
+      "tests": [
+        { "id": "TC-001", "name": "Verify Splash screen displays correctly on cold launch", "steps": ["1. Launch App", "2. Wait for Splash"], "expected": "Splash Screen is visible with Logo & Brand name", "severity": "High" },
+        { "id": "TC-002", "name": "Verify automatic redirect to Onboarding after splash timeout", "steps": ["1. Launch App", "2. Wait 3 seconds"], "expected": "App redirects to Onboarding Screen 1 automatically", "severity": "Medium" },
+        { "id": "TC-003", "name": "Verify Onboarding Page 1 content and elements", "steps": ["1. Land on Onboarding 1", "2. Verify text & controls"], "expected": "Title, description, and dots indicators display correctly", "severity": "Low" },
+        { "id": "TC-004", "name": "Verify Onboarding Page 2 navigation via swipe", "steps": ["1. Swipe left on screen"], "expected": "App slides to Onboarding Screen 2", "severity": "Low" },
+        { "id": "TC-005", "name": "Verify Onboarding Page 3 navigation via button click", "steps": ["1. Tap 'Next' button"], "expected": "App navigates to Onboarding Screen 3", "severity": "Low" },
+        { "id": "TC-006", "name": "Verify Skip Onboarding functionality", "steps": ["1. Tap 'Skip' on screen 1"], "expected": "App immediately redirects to Login Screen", "severity": "Medium" },
+        { "id": "TC-007", "name": "Verify Dot indicators change active state on swipe", "steps": ["1. Swipe from Page 1 to Page 2"], "expected": "Second dot highlight indicator is active", "severity": "Low" },
+        { "id": "TC-008", "name": "Verify final CTA navigates to Login", "steps": ["1. Reach Onboarding Page 3", "2. Tap 'Get Started'"], "expected": "Login screen displays successfully", "severity": "High" }
+      ]
+    },
+    {
+      "suite": "Authentication",
+      "tests": [
+        { "id": "TC-009", "name": "Verify Login Screen UI elements display correctly", "steps": ["1. Navigate to Login Screen"], "expected": "Email field, password field, Remember Me, Forgot Password, Sign In buttons are visible", "severity": "Medium" },
+        { "id": "TC-010", "name": "Verify validation on empty email and password submission", "steps": ["1. Leave fields empty", "2. Tap 'Sign In'"], "expected": "'Enter your email' error message is visible under email field", "severity": "High" },
+        { "id": "TC-011", "name": "Verify invalid email format validation", "steps": ["1. Enter 'invalidemail'", "2. Tap 'Sign In'"], "expected": "'Please enter a valid email' validation is displayed", "severity": "High" },
+        { "id": "TC-012", "name": "Verify password validation length under 6 characters", "steps": ["1. Enter valid email", "2. Enter password '123'", "3. Tap 'Sign In'"], "expected": "'Password must be at least 6 characters' validation appears", "severity": "High" },
+        { "id": "TC-013", "name": "Verify login failure with incorrect credentials", "steps": ["1. Enter 'wrong@user.com'", "2. Enter 'pass123'", "3. Tap 'Sign In'"], "expected": "Snackbar shows auth error message from Firebase", "severity": "High" },
+        { "id": "TC-014", "name": "Verify password visibility toggle button", "steps": ["1. Enter password 'mysecret'", "2. Tap visibility eye icon"], "expected": "Password changes from obscure bullets to plain text", "severity": "Low" },
+        { "id": "TC-015", "name": "Verify Remember Me checkbox state persistence", "steps": ["1. Check Remember Me", "2. Sign in", "3. Restart app"], "expected": "Email field is pre-filled on subsequent login visits", "severity": "Medium" },
+        { "id": "TC-016", "name": "Verify Google sign in button tap action", "steps": ["1. Tap 'Google' button under 'Or continue with'"], "expected": "Google sign-in flow initiates", "severity": "Medium" },
+        { "id": "TC-017", "name": "Verify GitHub sign in button tap action", "steps": ["1. Tap 'GitHub' button"], "expected": "GitHub sign-in flow initiates", "severity": "Medium" },
+        { "id": "TC-018", "name": "Verify link to Sign Up screen", "steps": ["1. Tap 'Sign Up' text link"], "expected": "Sign Up Screen loads successfully", "severity": "High" },
+        { "id": "TC-019", "name": "Verify successful login with customer credentials", "steps": ["1. Enter customer email", "2. Enter customer pass", "3. Tap Sign In"], "expected": "App logs in and redirects to Customer Home Screen", "severity": "High" },
+        { "id": "TC-020", "name": "Verify successful login with vendor credentials", "steps": ["1. Enter vendor email", "2. Enter vendor pass", "3. Tap Sign In"], "expected": "App logs in and redirects to Vendor Home Screen", "severity": "High" },
+        { "id": "TC-021", "name": "Verify Signup Screen UI fields", "steps": ["1. Open Signup Screen"], "expected": "Full Name, Email, Phone, Location, Password, Role fields are present", "severity": "Medium" },
+        { "id": "TC-022", "name": "Verify empty field validations on Signup", "steps": ["1. Leave all fields empty", "2. Tap 'Create Account'"], "expected": "All required field validation errors appear", "severity": "High" },
+        { "id": "TC-023", "name": "Verify duplicate email registration error", "steps": ["1. Enter existing email", "2. Fill fields", "3. Tap Signup"], "expected": "Firebase error 'Email already in use' snackbar displays", "severity": "High" },
+        { "id": "TC-024", "name": "Verify selecting 'Vendor' role shows vendor-specific fields", "steps": ["1. Tap 'Vendor' chip under Account Type"], "expected": "Shop Name and Pincode fields are shown dynamically", "severity": "High" },
+        { "id": "TC-025", "name": "Verify selecting 'Customer' role hides vendor-specific fields", "steps": ["1. Tap 'Customer' chip"], "expected": "Shop Name and Pincode fields are hidden", "severity": "High" },
+        { "id": "TC-026", "name": "Verify Pincode validation for non-numeric input", "steps": ["1. Select Vendor", "2. Enter 'ABC' as Pincode", "3. Tap Signup"], "expected": "'Please enter a valid numeric pincode' validation displays", "severity": "Medium" },
+        { "id": "TC-027", "name": "Verify Pincode character length boundaries", "steps": ["1. Select Vendor", "2. Enter '12'", "3. Tap Signup"], "expected": "'Pincode must be between 4 and 8 digits' validation displays", "severity": "Medium" },
+        { "id": "TC-028", "name": "Verify valid phone number validation", "steps": ["1. Enter invalid phone '123'", "2. Tap Signup"], "expected": "'Please enter a valid phone number' validation displays", "severity": "Medium" },
+        { "id": "TC-029", "name": "Verify customer signup is registered in Firebase Auth and Firestore", "steps": ["1. Fill all customer fields", "2. Tap 'Create Account'"], "expected": "User account created successfully, success snackbar shown", "severity": "High" },
+        { "id": "TC-030", "name": "Verify vendor signup registers inventory details correctly", "steps": ["1. Fill all vendor fields including Shop details", "2. Tap 'Create Account'"], "expected": "Vendor account registered and redirected to home", "severity": "High" },
+        { "id": "TC-031", "name": "Verify location selection field validation", "steps": ["1. Leave location blank", "2. Tap Signup"], "expected": "'Please enter your location' validation appears", "severity": "Low" },
+        { "id": "TC-032", "name": "Verify password toggle works on Signup screen", "steps": ["1. Enter password", "2. Tap visibility toggle"], "expected": "Password visibility is toggled correctly", "severity": "Low" },
+        { "id": "TC-033", "name": "Verify 'Sign In' redirect link from Signup", "steps": ["1. Tap 'Sign In' text link on Signup page"], "expected": "App redirects user to Login screen", "severity": "High" },
+        { "id": "TC-034", "name": "Verify Forgot Password UI elements", "steps": ["1. Open Forgot Password screen"], "expected": "Email text input and 'Reset Password' button are present", "severity": "Medium" },
+        { "id": "TC-035", "name": "Verify validation for empty email on Reset Password", "steps": ["1. Leave email blank", "2. Tap Reset"], "expected": "'Enter your email' validation error shown", "severity": "High" },
+        { "id": "TC-036", "name": "Verify email trigger for password reset", "steps": ["1. Enter registered email", "2. Tap 'Reset Password'"], "expected": "Firebase triggers reset email, success snackbar appears", "severity": "High" },
+        { "id": "TC-037", "name": "Verify error handling for unregistered email reset", "steps": ["1. Enter unregistered email", "2. Tap Reset"], "expected": "Snackbar shows error 'User not found'", "severity": "Medium" },
+        { "id": "TC-038", "name": "Verify 'Back to Login' redirection button works", "steps": ["1. Tap back arrow icon"], "expected": "App navigates back to Login screen", "severity": "Medium" }
+      ]
+    },
+    {
+      "suite": "Customer Module",
+      "tests": [
+        { "id": "TC-039", "name": "Verify Home header shows personalized greeting", "steps": ["1. Log in as Customer Alice", "2. Verify title text"], "expected": "Header displays 'Hello, Alice!'", "severity": "Medium" },
+        { "id": "TC-040", "name": "Verify Services grid cards display correctly", "steps": ["1. Open home screen"], "expected": "Search, Track, Chat, Profile cards are displayed with correct labels & icons", "severity": "Medium" },
+        { "id": "TC-041", "name": "Verify Search card redirects to Categories page", "steps": ["1. Tap 'Search' card"], "expected": "Categories Screen is loaded", "severity": "High" },
+        { "id": "TC-042", "name": "Verify Track card redirects to Order Tracking page", "steps": ["1. Tap 'Track' card"], "expected": "Order Tracking Screen is loaded", "severity": "High" },
+        { "id": "TC-043", "name": "Verify Chat card redirects to Chat List page", "steps": ["1. Tap 'Chat' card"], "expected": "Messages/Chat list Screen is loaded", "severity": "High" },
+        { "id": "TC-044", "name": "Verify Profile card redirects to Profile details", "steps": ["1. Tap 'Profile' card"], "expected": "My Profile Screen is loaded", "severity": "High" },
+        { "id": "TC-045", "name": "Verify AI recommendations banner redirects correctly", "steps": ["1. Scroll to Recommended section", "2. Tap AI Planner Card"], "expected": "AI Recommendations Screen is loaded", "severity": "Medium" },
+        { "id": "TC-046", "name": "Verify notification badge count displays on Home", "steps": ["1. View header notification icon"], "expected": "Red notification badge with count is displayed", "severity": "Low" },
+        { "id": "TC-047", "name": "Verify Category grid displays correct data", "steps": ["1. Navigate to Search/Categories screen"], "expected": "Sound, Lighting, Staging, AV, Decor categories display with emojis", "severity": "Medium" },
+        { "id": "TC-048", "name": "Verify keyword search functionality in categories", "steps": ["1. Enter 'Sound' in Search bar"], "expected": "Only Sound category tile remains visible in list", "severity": "High" },
+        { "id": "TC-049", "name": "Verify empty state for non-matching searches", "steps": ["1. Enter 'NonExistent' in search"], "expected": "Placeholder text 'No categories found' displays", "severity": "Medium" },
+        { "id": "TC-050", "name": "Verify tapping category opens product listings", "steps": ["1. Tap 'Sound' category tile"], "expected": "Equipment Listing screen for Sound category opens", "severity": "High" },
+        { "id": "TC-051", "name": "Verify category back navigation button works", "steps": ["1. Tap back arrow button on Header"], "expected": "App navigates back to Home screen", "severity": "High" },
+        { "id": "TC-052", "name": "Verify equipment list load time and scroll", "steps": ["1. Open Equipment list"], "expected": "Items display asynchronously via stream, scroll is smooth", "severity": "Medium" },
+        { "id": "TC-053", "name": "Verify detail screen elements display correctly", "steps": ["1. Tap equipment item 'PA System'", "2. Wait for detail page"], "expected": "Name, description, rating, price per day, calendar and Add to Cart button are shown", "severity": "High" },
+        { "id": "TC-054", "name": "Verify booking days counter controls", "steps": ["1. Tap '+' next to rental days indicator"], "expected": "Rental days count increments and total price recalculates", "severity": "High" },
+        { "id": "TC-055", "name": "Verify booking days counter minimum limit", "steps": ["1. Set days to 1", "2. Tap '-' button"], "expected": "Rental days count remains 1 (cannot be 0 or negative)", "severity": "Medium" },
+        { "id": "TC-056", "name": "Verify Add to Cart action displays Success snackbar", "steps": ["1. Tap 'Add to Cart' on PA System page"], "expected": "Snackbar confirmation 'added to cart' is visible", "severity": "High" },
+        { "id": "TC-057", "name": "Verify duplicate item addition behavior", "steps": ["1. Tap Add to Cart", "2. Tap Add to Cart again"], "expected": "Item quantity increments in cart without duplicate list items", "severity": "Medium" },
+        { "id": "TC-058", "name": "Verify empty cart placeholder is displayed", "steps": ["1. Navigate to empty Cart screen"], "expected": "'Your cart is empty' text and 'Browse Equipment' button display", "severity": "High" },
+        { "id": "TC-059", "name": "Verify listed item details in cart match selections", "steps": ["1. Add item to cart", "2. Open Cart screen"], "expected": "Item emoji, name, price per day, selected days, and subtotal are accurate", "severity": "High" },
+        { "id": "TC-060", "name": "Verify incrementing quantity on cart page", "steps": ["1. Tap '+' on cart item"], "expected": "Item quantity changes, subtotal and overall total update immediately", "severity": "High" },
+        { "id": "TC-061", "name": "Verify decrementing quantity on cart page", "steps": ["1. Tap '-' on cart item of quantity 2"], "expected": "Quantity changes to 1, totals update", "severity": "High" },
+        { "id": "TC-062", "name": "Verify removing an item from cart via delete button", "steps": ["1. Tap trash icon on item"], "expected": "Item is removed from list, total updates, snackbar confirms removal", "severity": "High" },
+        { "id": "TC-063", "name": "Verify tax (10%) and overall total calculation", "steps": ["1. Add items", "2. Check Order Summary calculations"], "expected": "Tax = Subtotal * 0.1, Total = Subtotal + Tax is verified correct", "severity": "Medium" },
+        { "id": "TC-064", "name": "Verify 'Proceed to Checkout' button action", "steps": ["1. Tap 'Proceed to Checkout'"], "expected": "Checkout screen opens successfully", "severity": "High" },
+        { "id": "TC-065", "name": "Verify delivery and event details form", "steps": ["1. Open Checkout screen"], "expected": "Delivery Address form, Event details, and Order summary cards are present", "severity": "Medium" },
+        { "id": "TC-066", "name": "Verify empty fields validation on checkout page", "steps": ["1. Tap 'Proceed Request' with empty form"], "expected": "Validation error messages display on mandatory fields", "severity": "High" },
+        { "id": "TC-067", "name": "Verify successful rental request creation in Firestore", "steps": ["1. Fill out checkout form", "2. Tap 'Proceed Request'"], "expected": "Request is registered in Firestore database", "severity": "High" },
+        { "id": "TC-068", "name": "Verify local cart is cleared after order submission", "steps": ["1. Complete checkout", "2. View Cart screen"], "expected": "Cart has been emptied successfully", "severity": "High" },
+        { "id": "TC-069", "name": "Verify Order Confirmation screen details", "steps": ["1. Reach confirmation screen"], "expected": "Request Sent to Vendor success banner, generated Request ID, and summary display", "severity": "High" },
+        { "id": "TC-070", "name": "Verify Track Order button navigation on confirmation", "steps": ["1. Tap 'Track Order' button"], "expected": "Redirects to Order Tracking Screen with the matching Order ID", "severity": "High" },
+        { "id": "TC-071", "name": "Verify 'Back to Home' button navigation", "steps": ["1. Tap 'Back to Home' button"], "expected": "Redirects to Customer Home screen", "severity": "High" },
+        { "id": "TC-072", "name": "Verify tracking timeline steps for active order", "steps": ["1. Open Tracking for active order"], "expected": "Timeline shows 5 steps (Request Sent, Confirmed, Prepared, Out for Delivery, Delivered)", "severity": "High" },
+        { "id": "TC-073", "name": "Verify current status text displays correctly", "steps": ["1. Change status to 'Confirmed' in database", "2. View tracking screen"], "expected": "Status displays 'Current Status: Confirmed' immediately", "severity": "High" },
+        { "id": "TC-074", "name": "Verify rejected order UI on tracking screen", "steps": ["1. Reject order in database", "2. View tracking screen"], "expected": "Red cross icon displays, status shows 'Request Rejected' with note", "severity": "High" },
+        { "id": "TC-075", "name": "Verify back button returns to Home page", "steps": ["1. Tap back icon on Tracking screen"], "expected": "Redirects to Home screen", "severity": "High" }
+      ]
+    },
+    {
+      "suite": "Vendor Module",
+      "tests": [
+        { "id": "TC-076", "name": "Verify vendor home quick action cards", "steps": ["1. Log in as Vendor", "2. Verify quick action links"], "expected": "Inventory, Orders, Inbox, and Settings cards display correctly", "severity": "High" },
+        { "id": "TC-077", "name": "Verify My Inventory screen lists vendor items", "steps": ["1. Tap 'Inventory' card"], "expected": "Listed equipment items are shown in a grid format", "severity": "High" },
+        { "id": "TC-078", "name": "Verify Add Item floating action button is visible", "steps": ["1. Open Inventory screen"], "expected": "Large '+' floating action button is present in bottom right", "severity": "Medium" },
+        { "id": "TC-079", "name": "Verify Add New Item sheet opens on FAB click", "steps": ["1. Tap '+' button"], "expected": "Draggable Add Item bottom sheet opens successfully", "severity": "High" },
+        { "id": "TC-080", "name": "Verify category selections on item creation sheet", "steps": ["1. Tap category chips on add sheet"], "expected": "Selected chip highlights and changes color to pink/purple gradient", "severity": "Low" },
+        { "id": "TC-081", "name": "Verify validation errors on empty add item submission", "steps": ["1. Tap 'Add to Inventory' on empty sheet"], "expected": "Name and price validations display correctly", "severity": "High" },
+        { "id": "TC-082", "name": "Verify successful item creation flow", "steps": ["1. Fill out details", "2. Tap 'Add to Inventory'"], "expected": "Item added snackbar shows, item is added to Firestore and displays in grid", "severity": "High" },
+        { "id": "TC-083", "name": "Verify Rental Requests screen displays customer orders", "steps": ["1. Tap 'Orders' on Vendor Home"], "expected": "List of incoming rental requests shows with status, customer, and date", "severity": "High" },
+        { "id": "TC-084", "name": "Verify Vendor can approve a rental request", "steps": ["1. Tap 'Accept Request' on pending order"], "expected": "Order status updates to Confirmed, Customer is notified", "severity": "High" },
+        { "id": "TC-085", "name": "Verify Vendor can reject a rental request", "steps": ["1. Tap 'Reject Request' on pending order"], "expected": "Order status updates to Rejected", "severity": "High" },
+        { "id": "TC-086", "name": "Verify Vendor can update logistics milestone status", "steps": ["1. Open order logistics dropdown", "2. Select 'Out for Delivery'"], "expected": "Order tracking step updates in Firestore", "severity": "High" }
+      ]
+    },
+    {
+      "suite": "Admin Module",
+      "tests": [
+        { "id": "TC-087", "name": "Verify Admin platform analytics stats grid", "steps": ["1. Log in as Admin", "2. View dashboard"], "expected": "Total Users (12,345), Equipment (856), Revenue ($125K), Deliveries (42) cards display", "severity": "Medium" },
+        { "id": "TC-088", "name": "Verify Revenue Overview line chart renders", "steps": ["1. Look at Revenue card on Admin dashboard"], "expected": "LineChart is rendered with months Jan-May on bottom axis", "severity": "Medium" },
+        { "id": "TC-089", "name": "Verify dashboard quick action shortcuts navigation", "steps": ["1. Tap 'Users' admin link shortcut"], "expected": "User Management screen opens", "severity": "Medium" },
+        { "id": "TC-090", "name": "Verify User list data renders with roles and status tags", "steps": ["1. Open User Management screen"], "expected": "List of users with names, emails, roles (Customer/Vendor) and status tags displays", "severity": "High" },
+        { "id": "TC-091", "name": "Verify list of pending vendor registrations", "steps": ["1. Open Vendor Approval screen"], "expected": "Pending registrations for SoundPro, Bright Lights Co., etc. are displayed", "severity": "High" },
+        { "id": "TC-092", "name": "Verify admin can approve a pending vendor", "steps": ["1. Tap 'Approve' next to pending vendor registration"], "expected": "Vendor is approved and status updates", "severity": "High" },
+        { "id": "TC-093", "name": "Verify admin can reject a pending vendor", "steps": ["1. Tap 'Reject' next to pending vendor registration"], "expected": "Registration is rejected", "severity": "High" },
+        { "id": "TC-094", "name": "Verify Reports and Analytics grid values", "steps": ["1. Open Reports screen"], "expected": "Monthly Revenue, New Users, completed orders with percentage changes show", "severity": "Medium" }
+      ]
+    },
+    {
+      "suite": "Shared Features",
+      "tests": [
+        { "id": "TC-095", "name": "Verify Messages screen loads and shows list of threads", "steps": ["1. Open Chat/Inbox screen"], "expected": "Conversation list is rendered correctly", "severity": "High" },
+        { "id": "TC-096", "name": "Verify opening a chat details conversation", "steps": ["1. Tap first chat thread"], "expected": "Chat detail screen opens, message history displays", "severity": "High" },
+        { "id": "TC-097", "name": "Verify sending a text message in real-time chat", "steps": ["1. Enter message text", "2. Tap 'Send'"], "expected": "Message is appended to bottom of list and synced to Firestore", "severity": "High" },
+        { "id": "TC-098", "name": "Verify Notifications screen loads and parses orders", "steps": ["1. Open Notifications screen"], "expected": "List of notifications based on orders is displayed with matching icons", "severity": "Medium" },
+        { "id": "TC-099", "name": "Verify empty notifications screen state", "steps": ["1. Clear all customer orders", "2. View Notifications screen"], "expected": "Empty placeholder text is displayed", "severity": "Low" },
+        { "id": "TC-100", "name": "Verify FAQs expansion tiles accordion behavior", "steps": ["1. Navigate to Support screen", "2. Tap FAQ question"], "expected": "Tile expands and reveals the answer text", "severity": "Low" },
+        { "id": "TC-101", "name": "Verify support contact actions", "steps": ["1. Tap 'Live Chat' card on Support screen"], "expected": "App redirects to live Chat support thread", "severity": "Low" },
+        { "id": "TC-102", "name": "Verify Profile data maps correctly from Firestore", "steps": ["1. Navigate to Profile screen"], "expected": "Name, role, email, phone, location cards display correctly", "severity": "High" },
+        { "id": "TC-103", "name": "Verify Sign Out redirects back to Login", "steps": ["1. Tap 'Sign Out' button"], "expected": "App logs out of Firebase and displays Login screen", "severity": "High" },
+        { "id": "TC-104", "name": "Verify matched percent badge formatting", "steps": ["1. Open AI Recommendations screen"], "expected": "Matched score is formatted as 'X% match' in green badge", "severity": "Low" },
+        { "id": "TC-105", "name": "Verify Stripe card integration flow (Production)", "steps": ["1. Input live credit card details", "2. Submit payment"], "expected": "Blocked - Test card details used, live payment processing skipped", "severity": "High" }
+      ]
+    }
+  ]
+}
