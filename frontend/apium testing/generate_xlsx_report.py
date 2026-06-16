@@ -422,7 +422,7 @@ def create_report():
             ws.column_dimensions[col_letter].width = 12
             
     # Save Report
-    filename = "E2E_Test_Report_EventSphere_2026-06-15.xlsx"
+    filename = f"E2E_Test_Report_EventSphere_{datetime.now().strftime('%Y-%m-%d')}.xlsx"
     wb.save(filename)
     print(f"Excel report generated successfully: {filename}")
 
