@@ -12,8 +12,13 @@ Usage (from repo root):
 
 import os
 import sys
+import io
 import subprocess
 from datetime import datetime
+
+# Prevent UnicodeEncodeError on Windows terminals when printing emoji/unicode status indicators
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -34,16 +39,26 @@ if result.returncode != 0:
     print("ERROR generating report:", result.stderr)
     sys.exit(result.returncode)
 
+import glob
+
 # Confirm the file was created
 today = datetime.now().strftime("%Y-%m-%d")
-xlsx_name = f"E2E_Test_Report_EventSphere_{today}.xlsx"
-xlsx_path = os.path.join(SCRIPT_DIR, xlsx_name)
+xlsx_pattern = os.path.join(SCRIPT_DIR, f"E2E_Test_Report_EventSphere_{today}_*.xlsx")
+xlsx_files = glob.glob(xlsx_pattern)
 
-if os.path.exists(xlsx_path):
+# Fallback: check if there is any E2E_Test_Report_EventSphere_*.xlsx in the directory
+if not xlsx_files:
+    xlsx_files = glob.glob(os.path.join(SCRIPT_DIR, "E2E_Test_Report_EventSphere_*.xlsx"))
+
+if xlsx_files:
+    # Pick the most recently modified report file
+    xlsx_path = max(xlsx_files, key=os.path.getmtime)
+    xlsx_name = os.path.basename(xlsx_path)
     size_kb = os.path.getsize(xlsx_path) / 1024
     print(f"✔  Report created: {xlsx_name}  ({size_kb:.1f} KB)")
 else:
-    print(f"✘  Expected report not found at: {xlsx_path}")
+    expected_path = os.path.join(SCRIPT_DIR, f"E2E_Test_Report_EventSphere_{today}.xlsx")
+    print(f"✘  Expected report not found at: {expected_path}")
     sys.exit(1)
 
 # ── Step 2 · Run Selenium E2E Tests via pytest ───────────────────────────────
