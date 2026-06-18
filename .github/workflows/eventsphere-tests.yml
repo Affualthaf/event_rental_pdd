@@ -202,6 +202,9 @@ jobs:
       - name: Run Frontend Test Runner
         run: python frontend/frontend_test/frontend_test_runner.py
 
+      - name: Run Backend Load Test Runner
+        run: python backend/automated_test/load_test_runner.py
+
       - name: Upload Backend XLSX Report
         if: always()
         uses: actions/upload-artifact@v4
@@ -216,4 +219,12 @@ jobs:
         with:
           name: frontend-test-report
           path: frontend/frontend_test/Frontend_Test_Report_EventSphere_*.xlsx
+          if-no-files-found: warn
+
+      - name: Upload Backend Load Test XLSX Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-load-test-report
+          path: backend/automated_test/Load_Test_Report_EventSphere_*.xlsx
           if-no-files-found: warn
