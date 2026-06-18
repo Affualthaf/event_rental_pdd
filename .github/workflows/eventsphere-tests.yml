@@ -225,6 +225,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: backend-load-test-report
+          name: load-test-report
           path: backend/automated_test/Load_Test_Report_EventSphere_*.xlsx
           if-no-files-found: warn
