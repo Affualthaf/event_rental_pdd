@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/widgets.dart';
 import '../../services/firebase_service.dart';
@@ -631,9 +632,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       );
     }
 
-    // Default: stream all orders and track the latest one
+    // Default: stream customer's own orders and track the latest one
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
     return StreamBuilder<List<OrderModel>>(
-      stream: service.getOrders(),
+      stream: service.getCustomerOrders(uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -960,6 +962,8 @@ class BookingHistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final service = FirebaseService();
 
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+
     return Scaffold(
       body: Column(
         children: [
@@ -974,7 +978,7 @@ class BookingHistoryScreen extends StatelessWidget {
             child: Container(
               decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
               child: StreamBuilder<List<OrderModel>>(
-                stream: service.getOrders(),
+                stream: service.getCustomerOrders(uid),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());

@@ -49,7 +49,7 @@ class _VendorOrderTrackingScreenState
         child: Column(
           children: [
             const GradientHeader(
-              title: 'Bookings',
+              title: 'Rental Requests',
               subtitle: 'Manage customer orders',
             ),
 

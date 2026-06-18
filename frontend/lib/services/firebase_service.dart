@@ -19,15 +19,6 @@ class FirebaseService {
     return docRef.id;
   }
 
-  Stream<List<OrderModel>> getOrders() {
-    return _db
-        .collection('orders')
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
-            .toList());
-  }
 
   Stream<OrderModel?> getOrderByIdStream(String orderId) {
     return _db
@@ -45,26 +36,26 @@ class FirebaseService {
   /// Matches on the `customerId` field (UID stored at order-placement time).
   /// Orders without a `customerId` field are excluded.
   Stream<List<OrderModel>> getCustomerOrders(String uid) {
-    return _db.collection('orders').snapshots().map((s) {
-      final filtered = s.docs.where((d) {
-        final cid = d.data()['customerId'] as String? ?? '';
-        return cid == uid;
-      }).map((d) => OrderModel.fromMap(d.data(), d.id)).toList();
-      filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return filtered;
+    return _db
+        .collection('orders')
+        .where('customerId', isEqualTo: uid)
+        .snapshots()
+        .map((s) {
+      final list = s.docs.map((d) => OrderModel.fromMap(d.data(), d.id)).toList();
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return list;
     });
   }
 
   Stream<List<OrderModel>> getOrdersForVendor(String vendorId) {
-    return _db.collection('orders').snapshots().map((s) {
+    return _db
+        .collection('orders')
+        .where('vendorId', isEqualTo: vendorId)
+        .snapshots()
+        .map((s) {
       final list = s.docs.map((d) => OrderModel.fromMap(d.data(), d.id)).toList();
-      final filtered = list.where((o) {
-        return o.vendorId == vendorId || 
-               o.vendorId.isEmpty || 
-               o.vendorId.startsWith('mock_');
-      }).toList();
-      filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt)); // newest first
-      return filtered;
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt)); // newest first
+      return list;
     });
   }
 

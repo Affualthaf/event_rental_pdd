@@ -16,10 +16,11 @@ service cloud.firestore {
     }
 
     /// Reads the caller's role from the users collection.
-    /// Returns '' when the document does not yet exist (e.g. mid sign-up).
+    /// Returns '' safely when the document does not yet exist (e.g. mid sign-up).
+    /// Uses exists() guard to prevent rule evaluation crashes on new accounts.
     function userRole() {
-      let doc = get(/databases/$(database)/documents/users/$(uid()));
-      return doc.data.get('role', '');
+      let path = /databases/$(database)/documents/users/$(uid());
+      return exists(path) ? get(path).data.get('role', '') : '';
     }
 
     function isVendor() {
@@ -101,9 +102,21 @@ service cloud.firestore {
                     && uid() in request.resource.data.participants;
 
       match /messages/{messageId} {
-        // Re-check at message level: uid must be in the parent chat's participants.
-        allow read, write: if isAuthenticated()
-                           && uid() in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        // Read: caller must be a participant of the parent chat.
+        allow read: if isAuthenticated()
+                    && exists(/databases/$(database)/documents/chats/$(chatId))
+                    && uid() in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+
+        // Write: caller is a participant (existing chat), OR is the sender (new chat
+        // transaction where the parent chat document may not be visible to get() yet).
+        allow write: if isAuthenticated()
+                     && (
+                          (
+                            exists(/databases/$(database)/documents/chats/$(chatId))
+                            && uid() in get(/databases/$(database)/documents/chats/$(chatId)).data.participants
+                          )
+                          || request.resource.data.senderId == uid()
+                        );
       }
     }
 
